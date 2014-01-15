@@ -39,7 +39,7 @@ EOF;
             throw new RuntimeException('Replication is unavailable. Make sure you can connect to Mongo.');
         }
 
-        $jobs = Doctrine_Core::getTable('Job')->findAll();
+        $jobs = Doctrine_Core::getTable('Job')->createApprovedJobsQuery()->execute();
         foreach ($jobs as $job) {
             $job->addToCollection();
             $this->logSection('repl:replicate', $job->getId());
