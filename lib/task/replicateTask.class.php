@@ -39,6 +39,23 @@ EOF;
             throw new RuntimeException('Replication is unavailable. Make sure you can connect to Mongo.');
         }
 
+        $this->logSection('repl:replicate', 'aBlogItem');
+        $posts = Doctrine_Core::getTable('aBlogItem')->getPosts(null);
+        aBlogItemTable::populatePages($posts);
+        foreach ($posts as $post) {
+            $post->addToCollection();
+            $this->logSection('repl:replicate', $post->getId());
+        }
+
+        $this->logSection('repl:replicate', 'aEvent');
+        $events = Doctrine_Core::getTable('aEvent')->createEventIndexQuery()->execute();
+        aBlogItemTable::populatePages($events);
+        foreach ($events as $event) {
+            $event->addToCollection();
+            $this->logSection('repl:replicate', $event->getId());
+        }
+
+        $this->logSection('repl:replicate', 'Job');
         $jobs = Doctrine_Core::getTable('Job')->createApprovedJobsQuery()->execute();
         foreach ($jobs as $job) {
             $job->addToCollection();

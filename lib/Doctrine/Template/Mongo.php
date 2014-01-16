@@ -20,6 +20,7 @@ class Doctrine_Template_Mongo extends Doctrine_Template
         'key' => 'jobs_hash',
         'fields' => array(),
         'fieldmap' => array(),
+        'condition' => array(),
         'realtime' => true,
     );
 
@@ -76,19 +77,40 @@ class Doctrine_Template_Mongo extends Doctrine_Template
         return $this->_options['connection'];
     }
 
-    public function getUniqueId()
+    public function getUniqueHash()
     {
         return sha1(sprintf('%s_%s', get_class($this->getInvoker()), $this->getInvoker()->getId()));
     }
 
     public function addToCollection()
     {
-        $this->_replicator->add($this->getInvoker());
+        $invoker = $this->getInvoker();
+
+        if ($this->checkConditions()) {
+            $this->_replicator->add($this->getInvoker());
+        }
+        else {
+            $this->_replicator->delete($this->getInvoker());
+        }
     }
 
     public function deleteFromCollection()
     {
-        $this->_search->delete($this->getInvoker());
+        $this->_replicator->delete($this->getInvoker());
+    }
+
+    public function checkConditions()
+    {
+        $ret = true;
+        $invoker = $this->getInvoker();
+
+        $conditions = $this->_options['condition'];
+        foreach ($conditions as $field => $condition) {
+            $value = $invoker->get($field);
+            $ret = ($value === $condition) ? true : false;
+        }
+
+        return $ret;
     }
 
     public function getFieldsAsArray()
@@ -96,7 +118,7 @@ class Doctrine_Template_Mongo extends Doctrine_Template
         $document = array();
         $invoker = $this->getInvoker();
 
-        $document[$this->_options['key']] = $this->getUniqueId();
+        $document[$this->_options['key']] = $this->getUniqueHash();
 
         $document['sf_meta_class'] = get_class($invoker);
         $document['sf_meta_id'] = $invoker->getId();

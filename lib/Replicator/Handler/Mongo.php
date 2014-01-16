@@ -39,10 +39,10 @@ class Replicator_Handler_Mongo
         );
     }
 
-    public function delete($id)
+    public function delete($hash)
     {
         $this->_collection->remove(
-            array('jobs_hash' => $id)
+            array('jobs_hash' => $hash)
         );
     }
 }

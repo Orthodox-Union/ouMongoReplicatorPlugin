@@ -21,7 +21,7 @@ class Replicator_Service
 
     public function delete(sfDoctrineRecord $record)
     {
-        $this->_handler->delete($record->getUniqueId());
+        $this->_handler->delete($record->getUniqueHash());
     }
 }
 
